@@ -13,7 +13,7 @@
       background: #000;
       overflow: hidden;
     }
-
+    body { cursor: pointer; }
     #player {
       position: fixed;
       inset: 0;
@@ -25,21 +25,17 @@
     }
   </style>
 </head>
-
 <body>
-  <video
-    id="player"
-    autoplay
-    muted
-    playsinline
-    preload="auto"
-  ></video>
+  <video id="player" autoplay muted playsinline preload="auto"></video>
 
   <script>
-    const clips = ["01", "02", "03", "04", "05"];
-    const player = document.getElementById("player");
+    const clips = [
+      "01", "02", "03", "04", "05", "06",
+      "07", "08", "09", "10", "11"
+    ];
 
-    let index = 0;
+    const player = document.getElementById("player");
+    let index = Math.floor(Math.random() * clips.length);
     let currentVariant = getVariant();
 
     function getVariant() {
@@ -55,7 +51,6 @@
     async function loadClip(newIndex) {
       index = (newIndex + clips.length) % clips.length;
       currentVariant = getVariant();
-
       player.src = fileFor(clips[index]);
       player.load();
 
@@ -66,8 +61,26 @@
       }
     }
 
-    player.addEventListener("ended", () => {
+    function nextClip() {
       loadClip(index + 1);
+    }
+
+    function previousClip() {
+      loadClip(index - 1);
+    }
+
+    player.addEventListener("ended", nextClip);
+
+    document.addEventListener("click", nextClip);
+
+    document.addEventListener("keydown", (event) => {
+      if (event.code === "Space" || event.code === "ArrowRight") {
+        event.preventDefault();
+        nextClip();
+      } else if (event.code === "ArrowLeft") {
+        event.preventDefault();
+        previousClip();
+      }
     });
 
     let resizeTimer;
@@ -79,7 +92,6 @@
         if (nextVariant !== currentVariant) {
           const currentTime = player.currentTime || 0;
           currentVariant = nextVariant;
-
           player.src = fileFor(clips[index], currentVariant);
           player.load();
 
@@ -87,7 +99,6 @@
             if (currentTime < player.duration) {
               player.currentTime = currentTime;
             }
-
             try {
               await player.play();
             } catch (_) {}
@@ -96,7 +107,7 @@
       }, 250);
     });
 
-    loadClip(0);
+    loadClip(index);
   </script>
 </body>
 </html>
