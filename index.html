@@ -27,6 +27,9 @@
 </head>
 <body>
   <video id="player" autoplay muted playsinline preload="auto"></video>
+  <audio id="backgroundAudio" loop preload="auto">
+    <source src="audio/background.mp3" type="audio/mpeg">
+  </audio>
 
   <script>
     const clips = [
@@ -35,6 +38,11 @@
     ];
 
     const player = document.getElementById("player");
+    const backgroundAudio = document.getElementById("backgroundAudio");
+
+    backgroundAudio.volume = 0.35;
+
+    let audioStarted = false;
     let index = Math.floor(Math.random() * clips.length);
     let currentVariant = getVariant();
 
@@ -46,6 +54,17 @@
 
     function fileFor(clip, variant = currentVariant) {
       return `video/${clip}_${variant}.mp4`;
+    }
+
+    async function startAudio() {
+      if (audioStarted) return;
+
+      try {
+        await backgroundAudio.play();
+        audioStarted = true;
+      } catch (error) {
+        console.log("Audio playback needs user interaction:", error);
+      }
     }
 
     async function loadClip(newIndex) {
@@ -71,9 +90,20 @@
 
     player.addEventListener("ended", nextClip);
 
-    document.addEventListener("click", nextClip);
+    document.addEventListener("click", () => {
+      startAudio();
+      nextClip();
+    });
 
     document.addEventListener("keydown", (event) => {
+      if (
+        event.code === "Space" ||
+        event.code === "ArrowRight" ||
+        event.code === "ArrowLeft"
+      ) {
+        startAudio();
+      }
+
       if (event.code === "Space" || event.code === "ArrowRight") {
         event.preventDefault();
         nextClip();
