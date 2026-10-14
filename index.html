@@ -36,7 +36,7 @@
   ></video>
 
   <script>
-    const clips = ["01", "02", "03", "04", "05", "06"];
+    const clips = ["01", "02", "03", "04", "05"];
     const player = document.getElementById("player");
 
     let index = 0;
@@ -49,7 +49,7 @@
     }
 
     function fileFor(clip, variant = currentVariant) {
-      return `videos/${clip}_${variant}.mp4`;
+      return `video/${clip}_${variant}.mp4`;
     }
 
     async function loadClip(newIndex) {
