@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Video Diary</title>
+  <meta name="theme-color" content="#000000" />
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+
+    #player {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      background: #000;
+    }
+  </style>
+</head>
+
+<body>
+  <video
+    id="player"
+    autoplay
+    muted
+    playsinline
+    preload="auto"
+  ></video>
+
+  <script>
+    const clips = ["01", "02", "03", "04", "05", "06"];
+    const player = document.getElementById("player");
+
+    let index = 0;
+    let currentVariant = getVariant();
+
+    function getVariant() {
+      return window.matchMedia("(max-width: 900px)").matches
+        ? "mobile"
+        : "desktop";
+    }
+
+    function fileFor(clip, variant = currentVariant) {
+      return `videos/${clip}_${variant}.mp4`;
+    }
+
+    async function loadClip(newIndex) {
+      index = (newIndex + clips.length) % clips.length;
+      currentVariant = getVariant();
+
+      player.src = fileFor(clips[index]);
+      player.load();
+
+      try {
+        await player.play();
+      } catch (error) {
+        console.log("Playback needs user interaction:", error);
+      }
+    }
+
+    player.addEventListener("ended", () => {
+      loadClip(index + 1);
+    });
+
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const nextVariant = getVariant();
+
+        if (nextVariant !== currentVariant) {
+          const currentTime = player.currentTime || 0;
+          currentVariant = nextVariant;
+
+          player.src = fileFor(clips[index], currentVariant);
+          player.load();
+
+          player.addEventListener("loadedmetadata", async () => {
+            if (currentTime < player.duration) {
+              player.currentTime = currentTime;
+            }
+
+            try {
+              await player.play();
+            } catch (_) {}
+          }, { once: true });
+        }
+      }, 250);
+    });
+
+    loadClip(0);
+  </script>
+</body>
+</html>
